@@ -20,8 +20,17 @@ var Zepto = (function() {
     slice = emptyArray.slice,
     //这里保存了window上的document,避免每次都去最底层作用域查找这个字段
     document = window.document,
-    elementDisplay = {}, classCache = {},
-    cssNumber = { 'column-count': 1, 'columns': 1, 'font-weight': 1, 'line-height': 1,'opacity': 1, 'z-index': 1, 'zoom': 1 },
+    elementDisplay = {}, 
+    classCache = {},
+    cssNumber = { 
+      'column-count': 1, 
+      'columns': 1, 
+      'font-weight': 1, 
+      'line-height': 1,
+      'opacity': 1, 
+      'z-index': 1, 
+      'zoom': 1 
+    },
     //html片段正则表达式
     //匹配<a-z、A-Z、0-9,以及下划线>单一的标签，首尾可以有空格，
     fragmentRE = /^\s*<(\w+|!)[^>]*>/,
@@ -36,6 +45,8 @@ var Zepto = (function() {
     methodAttributes = ['val', 'css', 'html', 'text', 'data', 'width', 'height', 'offset'],
 
     adjacencyOperators = [ 'after', 'prepend', 'before', 'append' ],
+
+    //有些标签只可以被固定的标签包裹
     table = document.createElement('table'),
     tableRow = document.createElement('tr'),
     containers = {
@@ -52,7 +63,8 @@ var Zepto = (function() {
     class2type = {},
     toString = class2type.toString,
     zepto = {},
-    camelize, uniq,
+    camelize, 
+    uniq,
     tempParent = document.createElement('div'),
     propMap = {
       'tabindex': 'tabIndex',
@@ -68,18 +80,26 @@ var Zepto = (function() {
       'frameborder': 'frameBorder',
       'contenteditable': 'contentEditable'
     },
+    //是不是数组的方法，先使用ES5的isArray判断，如果没有这个方法，使用instanceof “不严谨的”判断
     isArray = Array.isArray ||
       function(object){ return object instanceof Array }
 
   zepto.matches = function(element, selector) {
+    //如果传入的selelctor、 element、或者element的nodeType 不是元素节点，那么直接返回。 
     if (!selector || !element || element.nodeType !== 1) return false
+    //polyFill matches方法
     var matchesSelector = element.matches || element.webkitMatchesSelector ||
                           element.mozMatchesSelector || element.oMatchesSelector ||
                           element.matchesSelector
+    //如果方法可以执行。
     if (matchesSelector) return matchesSelector.call(element, selector)
     // fall back to performing a selector:
-    var match, parent = element.parentNode, temp = !parent
-    if (temp) (parent = tempParent).appendChild(element)
+
+    var match, 
+    parent = element.parentNode,
+     temp = !parent
+    if (temp) 
+    (parent = tempParent).appendChild(element)
     match = ~zepto.qsa(parent, selector).indexOf(element)
     temp && tempParent.removeChild(element)
     return match
@@ -91,9 +111,13 @@ var Zepto = (function() {
   }
 
   function isFunction(value) { return type(value) == "function" }
+
   function isWindow(obj)     { return obj != null && obj == obj.window }
+
   function isDocument(obj)   { return obj != null && obj.nodeType == obj.DOCUMENT_NODE }
+
   function isObject(obj)     { return type(obj) == "object" }
+
   function isPlainObject(obj) {
     return isObject(obj) && !isWindow(obj) && Object.getPrototypeOf(obj) == Object.prototype
   }
@@ -108,9 +132,26 @@ var Zepto = (function() {
     )
   }
 
-  function compact(array) { return filter.call(array, function(item){ return item != null }) }
-  function flatten(array) { return array.length > 0 ? $.fn.concat.apply([], array) : array }
-  camelize = function(str){ return str.replace(/-+(.)?/g, function(match, chr){ return chr ? chr.toUpperCase() : '' }) }
+  //过滤数组去除null 或者undefined的数组项
+  function compact(array) { 
+    return filter.call(array, function(item){ 
+      return item != null 
+    })
+   }
+
+  //数组扁平化
+  function flatten(array) { 
+    return array.length > 0 ?
+     $.fn.concat.apply([], array) 
+     : array 
+  }
+  //驼峰化
+  camelize = function(str){
+    return str.replace(/-+(.)?/g, function(match, chr){ 
+      return chr ? chr.toUpperCase() : '' 
+    }) 
+  }
+  //将驼峰变量 - 化
   function dasherize(str) {
     return str.replace(/::/g, '/')
            .replace(/([A-Z]+)([A-Z][a-z])/g, '$1_$2')
@@ -118,34 +159,57 @@ var Zepto = (function() {
            .replace(/_/g, '-')
            .toLowerCase()
   }
-  uniq = function(array){ return filter.call(array, function(item, idx){ return array.indexOf(item) == idx }) }
+  //数组去重，indexOf接受来个参数，第一个参数匹配的数据项，第二个参数开始的位置，
+  //使用全等匹配到第一个值停止
+  uniq = function(array){ 
+    return filter.call(array, function(item, idx){ 
+      return array.indexOf(item) == idx 
+    }) 
+  }
 
+  //将正则表达式换存在一个对象里面，hasClass 方法中使用了这个函数
   function classRE(name) {
     return name in classCache ?
       classCache[name] : (classCache[name] = new RegExp('(^|\\s)' + name + '(\\s|$)'))
   }
 
+  //添加px 单位，如果value是一个数字类型，并且不在cssNumber的集合中的 变量
   function maybeAddPx(name, value) {
+    //typeof value 必然返回字符类型，这个地方更好的是使用全等
     return (typeof value == "number" && !cssNumber[dasherize(name)]) ? value + "px" : value
   }
 
+  //
   function defaultDisplay(nodeName) {
-    var element, display
+    //声明俩个变量
+    var element, 
+    display
+    //如果elementDisplay缓存对象里面不存在这个 名称的 node节点
     if (!elementDisplay[nodeName]) {
+      //新建一个这个节点
       element = document.createElement(nodeName)
+      //加载到body上
       document.body.appendChild(element)
+      //使用getComputedStyle的方法获取 display
       display = getComputedStyle(element, '').getPropertyValue("display")
+      //删除这个节点
       element.parentNode.removeChild(element)
+      //如果dispay 的值是none，那么将diplay设置成block
       display == "none" && (display = "block")
+      //缓存这个值
       elementDisplay[nodeName] = display
     }
     return elementDisplay[nodeName]
   }
 
+  //拿到元素的孩子，children 方法可以返回它的nodeType=1的子级，childnodes返回所有类型的子级
   function children(element) {
     return 'children' in element ?
       slice.call(element.children) :
-      $.map(element.childNodes, function(node){ if (node.nodeType == 1) return node })
+      $.map(element.childNodes, function(node){
+         if (node.nodeType == 1) 
+         return node 
+        })
   }
 
   //这个是生成一个zepto对象的标准方法
@@ -309,16 +373,24 @@ var Zepto = (function() {
     return zepto.init(selector, context)
   }
 
+  //遍历对象的里面的属性
   function extend(target, source, deep) {
-    for (key in source)
+    for (key in source){
+      //如果是深度复制而且是数组或者对象
       if (deep && (isPlainObject(source[key]) || isArray(source[key]))) {
-        if (isPlainObject(source[key]) && !isPlainObject(target[key]))
+        if (isPlainObject(source[key]) && !isPlainObject(target[key])){
           target[key] = {}
-        if (isArray(source[key]) && !isArray(target[key]))
+        }
+        if (isArray(source[key]) && !isArray(target[key])){
           target[key] = []
+        }
         extend(target[key], source[key], deep)
       }
-      else if (source[key] !== undefined) target[key] = source[key]
+      //如果不是深度复制
+      else if (source[key] !== undefined) {
+        target[key] = source[key]
+      }
+    }
   }
 
   // Copy all but undefined properties from one or more
@@ -409,9 +481,11 @@ var Zepto = (function() {
   }
 
   $.contains = document.documentElement.contains ?
+  //使用原生的方法来判断是否包含这个元素
     function(parent, node) {
       return parent !== node && parent.contains(node)
     } :
+    //使用递归来判断是否包含
     function(parent, node) {
       while (node && (node = node.parentNode))
         if (node === parent) return true
@@ -527,6 +601,13 @@ var Zepto = (function() {
   if (window.JSON) $.parseJSON = JSON.parse
 
   // Populate the class2type map
+  /* 
+  class2type = {
+    [object Boolean]: boolean
+    ...
+  }
+  
+  */
   $.each("Boolean Number String Function Array Date RegExp Object Error".split(" "), function(i, name) {
     class2type[ "[object " + name + "]" ] = name.toLowerCase()
   })
