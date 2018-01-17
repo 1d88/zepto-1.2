@@ -122,6 +122,7 @@ var Zepto = (function() {
     return isObject(obj) && !isWindow(obj) && Object.getPrototypeOf(obj) == Object.prototype
   }
 
+  //是不是类数组
   function likeArray(obj) {
     var length = !!obj && 'length' in obj && obj.length,
       type = $.type(obj)
@@ -496,6 +497,7 @@ var Zepto = (function() {
     return isFunction(arg) ? arg.call(context, idx, payload) : arg
   }
 
+  //如果value === null || value === undefined 删除当前node的这个属性
   function setAttribute(node, name, value) {
     value == null ? node.removeAttribute(name) : node.setAttribute(name, value)
   }
@@ -539,23 +541,39 @@ var Zepto = (function() {
   $.isPlainObject = isPlainObject
 
   $.isEmptyObject = function(obj) {
+    //如果不是空，可以执行这个obj 不会走return true那句
     var name
     for (name in obj) return false
     return true
   }
 
+  //是不是数字
   $.isNumeric = function(val) {
-    var num = Number(val), type = typeof val
-    return val != null && type != 'boolean' &&
-      (type != 'string' || val.length) &&
-      !isNaN(num) && isFinite(num) || false
+    var num = Number(val), 
+    type = typeof val
+    return 
+    //val !== null 或者 !== undefined
+    val != null && 
+    // 类型不属于boolean
+    type != 'boolean'&&
+    // 类型不属于字符串或者 val的长度不为0 
+    (type != 'string' || val.length)&&
+    //不是NaN
+    !isNaN(num) &&
+    //是无穷位数吗
+    isFinite(num) || 
+    false
   }
 
+  //是否在数组里面
   $.inArray = function(elem, array, i){
     return emptyArray.indexOf.call(array, elem, i)
   }
 
+  //驼峰化命名规则
   $.camelCase = camelize
+  
+  //首尾去空格
   $.trim = function(str) {
     return str == null ? "" : String.prototype.trim.call(str)
   }
