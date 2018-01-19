@@ -124,12 +124,18 @@ var Zepto = (function() {
 
   //是不是类数组
   function likeArray(obj) {
-    var length = !!obj && 'length' in obj && obj.length,
+    var length = !!obj && 
+    'length' in obj && 
+    obj.length,
       type = $.type(obj)
 
-    return 'function' != type && !isWindow(obj) && (
-      'array' == type || length === 0 ||
-        (typeof length == 'number' && length > 0 && (length - 1) in obj)
+    return 'function' != type && 
+    !isWindow(obj) && (
+      'array' == type || 
+      length === 0 ||
+        (typeof length == 'number' && 
+        length > 0 && 
+        (length - 1) in obj)
     )
   }
 
@@ -168,7 +174,7 @@ var Zepto = (function() {
     }) 
   }
 
-  //将正则表达式换存在一个对象里面，hasClass 方法中使用了这个函数
+  //将正则表达式缓存在一个对象里面，hasClass 方法中使用了这个函数
   function classRE(name) {
     return name in classCache ?
       classCache[name] : (classCache[name] = new RegExp('(^|\\s)' + name + '(\\s|$)'))
@@ -374,20 +380,30 @@ var Zepto = (function() {
     return zepto.init(selector, context)
   }
 
-  //遍历对象的里面的属性
+  //遍历对象的里面的属性，以source为复制源 source => target，思想还是递归遍历对象里面的内容
   function extend(target, source, deep) {
     for (key in source){
-      //如果是深度复制而且是数组或者对象
-      if (deep && (isPlainObject(source[key]) || isArray(source[key]))) {
+      //如果是深度复制
+      if (deep && 
+        //如果是简单的对象
+        (isPlainObject(source[key]) ||
+        //如果是数组
+        isArray(source[key]))) {
+          //如果是一个source是里面的属性是对象 但是 target对应的属性不是对象
         if (isPlainObject(source[key]) && !isPlainObject(target[key])){
+          //重置成一个空对象
           target[key] = {}
         }
-        if (isArray(source[key]) && !isArray(target[key])){
+        //如果是source key 为数组
+        if (isArray(source[key]) && 
+        //如果target key 不是一个数组
+        !isArray(target[key])){
+          //那么重置target[key] 为一个空数组
           target[key] = []
         }
+        //递归
         extend(target[key], source[key], deep)
       }
-      //如果不是深度复制
       else if (source[key] !== undefined) {
         target[key] = source[key]
       }
@@ -397,11 +413,17 @@ var Zepto = (function() {
   // Copy all but undefined properties from one or more
   // objects to the `target` object.
   $.extend = function(target){
-    var deep, args = slice.call(arguments, 1)
+    var deep, 
+    //所有的参数从index为1开始，复制到 最后一项
+    args = slice.call(arguments, 1)
+
+    //这里用全等会不会更好，如果target的值是boolean类型，表示是否进行深度复制
     if (typeof target == 'boolean') {
       deep = target
+      //target 为参数第一项，弹出第一项
       target = args.shift()
     }
+    //分别对每一项复制到target上，后面的覆盖前面的
     args.forEach(function(arg){ extend(target, arg, deep) })
     return target
   }
@@ -483,6 +505,7 @@ var Zepto = (function() {
 
   $.contains = document.documentElement.contains ?
   //使用原生的方法来判断是否包含这个元素
+  //如果node是parent的后代或者本身 返回true
     function(parent, node) {
       return parent !== node && parent.contains(node)
     } :
@@ -645,6 +668,7 @@ var Zepto = (function() {
     splice: emptyArray.splice,
     indexOf: emptyArray.indexOf,
     concat: function(){
+      debugger;
       var i, value, args = []
       for (i = 0; i < arguments.length; i++) {
         value = arguments[i]
@@ -678,6 +702,7 @@ var Zepto = (function() {
       }
       return this
     },
+    //如果有idx那么返回相应的index元素，如果没有返回整个数组
     get: function(idx){
       return idx === undefined ? slice.call(this) : this[idx >= 0 ? idx : idx + this.length]
     },
