@@ -4,32 +4,32 @@
 
 
 //从字面上看，自执行函数里面肯定会返回一个对象或者函数之类的
-var Zepto = (function() {
+var Zepto = (function () {
   /* 
     1、很奇怪的声明了一个叫做undefined的标识符，undefined不是关键字和保留字，其实undefined 是global底下的一个属性（widnow.undefined是可以访问到的）；
     2、在ES5规范中，undefined、NaN、Infinity变成只读属性，
     3、这个地方声明了一个undefined，但是始终没有初始化，其实就是为了兼容一个undefined,避免window.undefined被重写而导致代码出现不准确。
   */
   var undefined,
-   key,
+    key,
     $,
     classList,
-    emptyArray = [], 
-    concat = emptyArray.concat, 
-    filter = emptyArray.filter, 
+    emptyArray = [],
+    concat = emptyArray.concat,
+    filter = emptyArray.filter,
     slice = emptyArray.slice,
     //这里保存了window上的document,避免每次都去最底层作用域查找这个字段
     document = window.document,
-    elementDisplay = {}, 
+    elementDisplay = {},
     classCache = {},
-    cssNumber = { 
-      'column-count': 1, 
-      'columns': 1, 
-      'font-weight': 1, 
+    cssNumber = {
+      'column-count': 1,
+      'columns': 1,
+      'font-weight': 1,
       'line-height': 1,
-      'opacity': 1, 
-      'z-index': 1, 
-      'zoom': 1 
+      'opacity': 1,
+      'z-index': 1,
+      'zoom': 1
     },
     //html片段正则表达式
     //匹配<a-z、A-Z、0-9,以及下划线>单一的标签，首尾可以有空格，
@@ -44,17 +44,17 @@ var Zepto = (function() {
     // special attributes that should be get/set via method calls
     methodAttributes = ['val', 'css', 'html', 'text', 'data', 'width', 'height', 'offset'],
 
-    adjacencyOperators = [ 'after', 'prepend', 'before', 'append' ],
+    adjacencyOperators = ['after', 'prepend', 'before', 'append'],
 
     //有些标签只可以被固定的标签包裹
     table = document.createElement('table'),
     tableRow = document.createElement('tr'),
     containers = {
       'tr': document.createElement('tbody'),
-      'tbody': table, 
-      'thead': table, 
+      'tbody': table,
+      'thead': table,
       'tfoot': table,
-      'td': tableRow, 
+      'td': tableRow,
       'th': tableRow,
       '*': document.createElement('div')
     },
@@ -63,7 +63,7 @@ var Zepto = (function() {
     class2type = {},
     toString = class2type.toString,
     zepto = {},
-    camelize, 
+    camelize,
     uniq,
     tempParent = document.createElement('div'),
     propMap = {
@@ -82,24 +82,24 @@ var Zepto = (function() {
     },
     //是不是数组的方法，先使用ES5的isArray判断，如果没有这个方法，使用instanceof “不严谨的”判断
     isArray = Array.isArray ||
-      function(object){ return object instanceof Array }
+      function (object) { return object instanceof Array }
 
-  zepto.matches = function(element, selector) {
+  zepto.matches = function (element, selector) {
     //如果传入的selelctor、 element、或者element的nodeType 不是元素节点，那么直接返回。 
     if (!selector || !element || element.nodeType !== 1) return false
     //polyFill matches方法
     var matchesSelector = element.matches || element.webkitMatchesSelector ||
-                          element.mozMatchesSelector || element.oMatchesSelector ||
-                          element.matchesSelector
+      element.mozMatchesSelector || element.oMatchesSelector ||
+      element.matchesSelector
     //如果方法可以执行。
     if (matchesSelector) return matchesSelector.call(element, selector)
     // fall back to performing a selector:
 
-    var match, 
-    parent = element.parentNode,
-     temp = !parent
-    if (temp) 
-    (parent = tempParent).appendChild(element)
+    var match,
+      parent = element.parentNode,
+      temp = !parent
+    if (temp)
+      (parent = tempParent).appendChild(element)
     match = ~zepto.qsa(parent, selector).indexOf(element)
     temp && tempParent.removeChild(element)
     return match
@@ -112,11 +112,11 @@ var Zepto = (function() {
 
   function isFunction(value) { return type(value) == "function" }
 
-  function isWindow(obj)     { return obj != null && obj == obj.window }
+  function isWindow(obj) { return obj != null && obj == obj.window }
 
-  function isDocument(obj)   { return obj != null && obj.nodeType == obj.DOCUMENT_NODE }
+  function isDocument(obj) { return obj != null && obj.nodeType == obj.DOCUMENT_NODE }
 
-  function isObject(obj)     { return type(obj) == "object" }
+  function isObject(obj) { return type(obj) == "object" }
 
   function isPlainObject(obj) {
     return isObject(obj) && !isWindow(obj) && Object.getPrototypeOf(obj) == Object.prototype
@@ -124,54 +124,54 @@ var Zepto = (function() {
 
   //是不是类数组
   function likeArray(obj) {
-    var length = !!obj && 
-    'length' in obj && 
-    obj.length,
+    var length = !!obj &&
+      'length' in obj &&
+      obj.length,
       type = $.type(obj)
 
-    return 'function' != type && 
-    !isWindow(obj) && (
-      'array' == type || 
-      length === 0 ||
-        (typeof length == 'number' && 
-        length > 0 && 
-        (length - 1) in obj)
-    )
+    return 'function' != type &&
+      !isWindow(obj) && (
+        'array' == type ||
+        length === 0 ||
+        (typeof length == 'number' &&
+          length > 0 &&
+          (length - 1) in obj)
+      )
   }
 
   //过滤数组去除null 或者undefined的数组项
-  function compact(array) { 
-    return filter.call(array, function(item){ 
-      return item != null 
+  function compact(array) {
+    return filter.call(array, function (item) {
+      return item != null
     })
-   }
+  }
 
   //数组扁平化
-  function flatten(array) { 
+  function flatten(array) {
     return array.length > 0 ?
-     $.fn.concat.apply([], array) 
-     : array 
+      $.fn.concat.apply([], array)
+      : array
   }
   //驼峰化
-  camelize = function(str){
-    return str.replace(/-+(.)?/g, function(match, chr){ 
-      return chr ? chr.toUpperCase() : '' 
-    }) 
+  camelize = function (str) {
+    return str.replace(/-+(.)?/g, function (match, chr) {
+      return chr ? chr.toUpperCase() : ''
+    })
   }
   //将驼峰变量 - 化
   function dasherize(str) {
     return str.replace(/::/g, '/')
-           .replace(/([A-Z]+)([A-Z][a-z])/g, '$1_$2')
-           .replace(/([a-z\d])([A-Z])/g, '$1_$2')
-           .replace(/_/g, '-')
-           .toLowerCase()
+      .replace(/([A-Z]+)([A-Z][a-z])/g, '$1_$2')
+      .replace(/([a-z\d])([A-Z])/g, '$1_$2')
+      .replace(/_/g, '-')
+      .toLowerCase()
   }
   //数组去重，indexOf接受来个参数，第一个参数匹配的数据项，第二个参数开始的位置，
   //使用全等匹配到第一个值停止
-  uniq = function(array){ 
-    return filter.call(array, function(item, idx){ 
-      return array.indexOf(item) == idx 
-    }) 
+  uniq = function (array) {
+    return filter.call(array, function (item, idx) {
+      return array.indexOf(item) == idx
+    })
   }
 
   //将正则表达式缓存在一个对象里面，hasClass 方法中使用了这个函数
@@ -189,8 +189,8 @@ var Zepto = (function() {
   //
   function defaultDisplay(nodeName) {
     //声明俩个变量
-    var element, 
-    display
+    var element,
+      display
     //如果elementDisplay缓存对象里面不存在这个 名称的 node节点
     if (!elementDisplay[nodeName]) {
       //新建一个这个节点
@@ -213,10 +213,10 @@ var Zepto = (function() {
   function children(element) {
     return 'children' in element ?
       slice.call(element.children) :
-      $.map(element.childNodes, function(node){
-         if (node.nodeType == 1) 
-         return node 
-        })
+      $.map(element.childNodes, function (node) {
+        if (node.nodeType == 1)
+          return node
+      })
   }
 
   //这个是生成一个zepto对象的标准方法
@@ -237,11 +237,11 @@ var Zepto = (function() {
   // This function can be overridden in plugins for example to make
   // it compatible with browsers that don't support the DOM fully.
   //html fragment字符串 ，name 第一匹配组/w+ 匹配的字符串，properties 属性集合
-  zepto.fragment = function(html, name, properties) {
+  zepto.fragment = function (html, name, properties) {
     //最终返回
     var dom,
-    nodes,
-    container
+      nodes,
+      container
 
     // A special case optimization for a single tag
     // 如果是单一的html片段如<tag></tag> 那么直接使用creteElement 创建，然后以nodes的那种方式进行处理
@@ -263,14 +263,14 @@ var Zepto = (function() {
       //$.each 会返回我们的迭代对象
       //使用数组的slice方法复制了一份我们需要的子node集合
       //但是我们创建的容器还是存在的，并且里面的子node不是我们想要的内容
-      dom = $.each(slice.call(container.childNodes), function(){
+      dom = $.each(slice.call(container.childNodes), function () {
         container.removeChild(this)
       })
     }
     //进行属性的操作
     if (isPlainObject(properties)) {
       nodes = $(dom)
-      $.each(properties, function(key, value) {
+      $.each(properties, function (key, value) {
         if (methodAttributes.indexOf(key) > -1) nodes[key](value)//还是调用自己的方法
         else nodes.attr(key, value)
       })
@@ -284,7 +284,7 @@ var Zepto = (function() {
   // to the array. This method can be overridden in plugins.
 
   //这里是使用了工厂方法去获取一个Z，而不是new 一个Z
-  zepto.Z = function(dom, selector) {
+  zepto.Z = function (dom, selector) {
     return new Z(dom, selector)
   }
 
@@ -301,7 +301,7 @@ var Zepto = (function() {
   // }
   // zepto.Z 和 Z 的 原型对象都指向了 $.fn  
   // 他们的构造函数也指向了 zepto.Z
-  zepto.isZ = function(object) {
+  zepto.isZ = function (object) {
     return object instanceof zepto.Z
   }
 
@@ -312,7 +312,7 @@ var Zepto = (function() {
 
   //counterpart：副本 相对物 optional 可选的
   //这个zepto是上面用字面量生命并初始化的一个空对象，向这个对象添加一个init方法添加两个参数
-  zepto.init = function(selector, context) {
+  zepto.init = function (selector, context) {
     var dom
     // If nothing given, return an empty Zepto collection
     //如果选择器是个空，那么返回一个zepto.Z()，
@@ -332,7 +332,7 @@ var Zepto = (function() {
       // ps：这种使用[index]访问单个字符的方法是ES5提供的，ie8和其它浏览器支持这中访问方式，
       // 在IE7以及一下会返回undefined
       if (selector[0] == '<' && fragmentRE.test(selector))
-      // RegExp.$1 第一个捕获组 正常的html标签,返回的是标签的名称，selector置为空
+        // RegExp.$1 第一个捕获组 正常的html标签,返回的是标签的名称，selector置为空
         dom = zepto.fragment(selector, RegExp.$1, context), selector = null
       // If there's a context, create a collection on that context first, and select
       // nodes from there
@@ -376,28 +376,28 @@ var Zepto = (function() {
     selector 是选择器，context 是当前选择器的命名空间，表示从
     当前的dom查找它的子级
   */
-  $ = function(selector, context){
+  $ = function (selector, context) {
     return zepto.init(selector, context)
   }
 
   //遍历对象的里面的属性，以source为复制源 source => target，思想还是递归遍历对象里面的内容
   function extend(target, source, deep) {
-    for (key in source){
+    for (key in source) {
       //如果是深度复制
-      if (deep && 
-        //如果是简单的对象
+      if (deep &&
+        //如果是简单的对象，这里主要是规避DOM对象，
         (isPlainObject(source[key]) ||
-        //如果是数组
-        isArray(source[key]))) {
-          //如果是一个source是里面的属性是对象 但是 target对应的属性不是对象
-        if (isPlainObject(source[key]) && !isPlainObject(target[key])){
+          //如果是数组
+          isArray(source[key]))) {
+        //如果一个source是里面的属性是对象 但是 target对应的属性不是对象
+        if (isPlainObject(source[key]) && !isPlainObject(target[key])) {
           //重置成一个空对象
           target[key] = {}
         }
         //如果是source key 为数组
-        if (isArray(source[key]) && 
-        //如果target key 不是一个数组
-        !isArray(target[key])){
+        if (isArray(source[key]) &&
+          //如果target key 不是一个数组
+          !isArray(target[key])) {
           //那么重置target[key] 为一个空数组
           target[key] = []
         }
@@ -412,10 +412,10 @@ var Zepto = (function() {
 
   // Copy all but undefined properties from one or more
   // objects to the `target` object.
-  $.extend = function(target){
-    var deep, 
-    //所有的参数从index为1开始，复制到 最后一项
-    args = slice.call(arguments, 1)
+  $.extend = function (target) {
+    var deep,
+      //所有的参数从index为1开始，复制到 最后一项
+      args = slice.call(arguments, 1)
 
     //这里用全等会不会更好，如果target的值是boolean类型，表示是否进行深度复制
     if (typeof target == 'boolean') {
@@ -424,7 +424,7 @@ var Zepto = (function() {
       target = args.shift()
     }
     //分别对每一项复制到target上，后面的覆盖前面的
-    args.forEach(function(arg){ extend(target, arg, deep) })
+    args.forEach(function (arg) { extend(target, arg, deep) })
     return target
   }
 
@@ -437,85 +437,87 @@ var Zepto = (function() {
   //2、如果element 不是元素、document、documentFragment节点 返回空数组
   //3、如果是单一的字符串 尝试 是否可以使用 getElementsByClassName 或者 getElementsByTagName
   //4、如果是body span这种复杂的字符串尝试使用querySelectorAll
-  zepto.qsa = function(element, selector){
+  zepto.qsa = function (element, selector) {
     var found,
-        //selector为#id的这种选择器
-        maybeID = selector[0] == '#',
-        //!maybeID 就是非#id这种情况，然后判断是否是.class这种情况
-        maybeClass = !maybeID && selector[0] == '.',
-        // Ensure that a 1 char tag name still gets checked
-        //如果是两者之中的一种 那么去掉“.”或者“#”，返回剩下的字符串，如果
-        //都不符合，那么返回完整的selector
-        nameOnly = maybeID || maybeClass ? selector.slice(1) : selector, 
-        //这个正则只是检测是否是一个单一的字符串 字符串包括a-zA-Z0-9 _ -
-        isSimple = simpleSelectorRE.test(nameOnly)
-        /* 
-        此处的代码格式化：
-        // 判断符合ID选择器的三个条件
-        // 1、element(document).getElementById 存在
-        // 2、是一个简单的字符
-        // 3、并且是# a-zA-Z0-9 _ - 这中类型的值
-        // 1 是浏览器的能力检测，2和3判断是否符合ID选择器的条件
-        if(element.getElementById && isSimple && maybeID){
-          // 如果可以拿到这个dom对象，那么把它放入一个数组里面，否则是个空数组
-          if(element.getElementById(nameOnly)){
-            found = [element.getElementById(nameOnly)];
+      //selector为#id的这种选择器
+      maybeID = selector[0] == '#',
+      //!maybeID 就是非#id这种情况，然后判断是否是.class这种情况
+      maybeClass = !maybeID && selector[0] == '.',
+      // Ensure that a 1 char tag name still gets checked
+      //如果是两者之中的一种 那么去掉“.”或者“#”，返回剩下的字符串，如果
+      //都不符合，那么返回完整的selector
+      nameOnly = maybeID || maybeClass ? selector.slice(1) : selector,
+      //这个正则只是检测是否是一个单一的字符串 字符串包括a-zA-Z0-9 _ -
+      isSimple = simpleSelectorRE.test(nameOnly)
+    /* 
+    此处的代码格式化：
+    // 判断符合ID选择器的三个条件
+    // 1、element(document).getElementById 存在
+    // 2、是一个简单的字符
+    // 3、并且是# a-zA-Z0-9 _ - 这中类型的值
+    // 1 是浏览器的能力检测，2和3判断是否符合ID选择器的条件
+    if(element.getElementById && isSimple && maybeID){
+      // 如果可以拿到这个dom对象，那么把它放入一个数组里面，否则是个空数组
+      if(element.getElementById(nameOnly)){
+        found = [element.getElementById(nameOnly)];
+      }else{
+        found = [];
+      }
+      return found;
+      //当前的传入的这个element节点的节点类型
+      //1、不是元素节点类型
+      //2、不是document 节点
+      //3、不是documentFragment节点
+    }else if(element.nodeType !== 1 && element.nodeType !== 9 && element.nodeType !== 11){
+      //返回空
+      return []
+    }else{
+      //调用空数组的slice方法
+      return slice.call(
+        //如果是单一的字符串 && 不是ID && 存在getElementsByClassName方法
+        if(isSimple && !maybeID && element.getElementsByClassName){
+          //如果是 class 选择器
+          if(maybeClass){
+            element.getElementsByClassName
           }else{
-            found = [];
+            element.getElementsByTagName(selector)
           }
-          return found;
-          //当前的传入的这个element节点的节点类型
-          //1、不是元素节点类型
-          //2、不是document 节点
-          //3、不是documentFragment节点
-        }else if(element.nodeType !== 1 && element.nodeType !== 9 && element.nodeType !== 11){
-          //返回空
-          return []
         }else{
-          //调用空数组的slice方法
-          return slice.call(
-            //如果是单一的字符串 && 不是ID && 存在getElementsByClassName方法
-            if(isSimple && !maybeID && element.getElementsByClassName){
-              //如果是 class 选择器
-              if(maybeClass){
-                element.getElementsByClassName
-              }else{
-                element.getElementsByTagName(selector)
-              }
-            }else{
-              element.querySelectorAll(selector)
-            }
-          )
+          element.querySelectorAll(selector)
         }
-        */
-    return (element.getElementById && isSimple && maybeID) ? // Safari DocumentFragment doesn't have getElementById
-      ( (found = element.getElementById(nameOnly)) ? [found] : [] ) :
-      (element.nodeType !== 1 && element.nodeType !== 9 && element.nodeType !== 11) ? [] :
-      slice.call(
-        isSimple && !maybeID && element.getElementsByClassName ? // DocumentFragment doesn't have getElementsByClassName/TagName
-          maybeClass ? element.getElementsByClassName(nameOnly) : // If it's simple, it could be a class
-          element.getElementsByTagName(selector) : // Or a tag
-          element.querySelectorAll(selector) // Or it's not simple, and we need to query all
       )
+    }
+    */
+    return (element.getElementById && isSimple && maybeID) ? // Safari DocumentFragment doesn't have getElementById
+      ((found = element.getElementById(nameOnly)) ? [found] : []) :
+      (element.nodeType !== 1 && element.nodeType !== 9 && element.nodeType !== 11) ? [] :
+        slice.call(
+          isSimple && !maybeID && element.getElementsByClassName ? // DocumentFragment doesn't have getElementsByClassName/TagName
+            maybeClass ? element.getElementsByClassName(nameOnly) : // If it's simple, it could be a class
+              element.getElementsByTagName(selector) : // Or a tag
+            element.querySelectorAll(selector) // Or it's not simple, and we need to query all
+        )
   }
 
   function filtered(nodes, selector) {
     return selector == null ? $(nodes) : $(nodes).filter(selector)
   }
 
-  $.contains = document.documentElement.contains ?
-  //使用原生的方法来判断是否包含这个元素
-  //如果node是parent的后代或者本身 返回true
-    function(parent, node) {
+  $.contains = 
+  // 能力检测，看浏览器支不支持contains方法
+  document.documentElement.contains ?
+    //使用原生的方法来判断是否包含这个元素
+    //如果node是parent的后代或者本身 返回true
+    function (parent, node) {
       return parent !== node && parent.contains(node)
     } :
-    //使用递归来判断是否包含
-    function(parent, node) {
+    // 循环查找父元素，看是否可以找到parent === node 的情况
+    function (parent, node) {
       while (node && (node = node.parentNode))
         if (node === parent) return true
       return false
     }
-
+  // 这个函数主要是 兼容 参数是函数的这种情况
   function funcArg(context, arg, idx, payload) {
     return isFunction(arg) ? arg.call(context, idx, payload) : arg
   }
@@ -526,9 +528,9 @@ var Zepto = (function() {
   }
 
   // access className property while respecting SVGAnimatedString
-  function className(node, value){
+  function className(node, value) {
     var klass = node.className || '',
-        svg   = klass && klass.baseVal !== undefined
+      svg = klass && klass.baseVal !== undefined
 
     if (value === undefined) return svg ? klass.baseVal : klass
     svg ? (klass.baseVal = value) : (node.className = value)
@@ -546,13 +548,13 @@ var Zepto = (function() {
     try {
       return value ?
         value == "true" ||
-        ( value == "false" ? false :
+        (value == "false" ? false :
           value == "null" ? null :
-          +value + "" == value ? +value :
-          /^[\[\{]/.test(value) ? $.parseJSON(value) :
-          value )
+            +value + "" == value ? +value :
+              /^[\[\{]/.test(value) ? $.parseJSON(value) :
+                value)
         : value
-    } catch(e) {
+    } catch (e) {
       return value
     }
   }
@@ -563,51 +565,56 @@ var Zepto = (function() {
   $.isArray = isArray
   $.isPlainObject = isPlainObject
 
-  $.isEmptyObject = function(obj) {
+  $.isEmptyObject = function (obj) {
     //如果不是空，可以执行这个obj 不会走return true那句
+    /* 
+    if(Object.keys(obj).length) return false
+    return true
+    */
     var name
     for (name in obj) return false
     return true
   }
 
   //是不是数字
-  $.isNumeric = function(val) {
-    var num = Number(val), 
-    type = typeof val
-    return 
+  $.isNumeric = function (val) {
+    var num = Number(val),
+      type = typeof val
+    return
     //val !== null 或者 !== undefined
-    val != null && 
-    // 类型不属于boolean
-    type != 'boolean'&&
-    // 类型不属于字符串或者 val的长度不为0 
-    (type != 'string' || val.length)&&
-    //不是NaN
-    !isNaN(num) &&
-    //是无穷位数吗
-    isFinite(num) || 
-    false
+    val != null &&
+      // 类型不属于boolean
+      type != 'boolean' &&
+      // 类型不属于字符串或者 val的长度不为0 
+      (type != 'string' || val.length) &&
+      //不是NaN
+      !isNaN(num) &&
+      //是无穷位数吗
+      isFinite(num) ||
+      false
   }
 
   //是否在数组里面
-  $.inArray = function(elem, array, i){
+  $.inArray = function (elem, array, i) {
     return emptyArray.indexOf.call(array, elem, i)
   }
 
   //驼峰化命名规则
   $.camelCase = camelize
-  
+
   //首尾去空格
-  $.trim = function(str) {
+  $.trim = function (str) {
     return str == null ? "" : String.prototype.trim.call(str)
   }
 
   // plugin compatibility
   $.uuid = 0
-  $.support = { }
-  $.expr = { }
-  $.noop = function() {}
+  $.support = {}
+  $.expr = {}
+  $.noop = function () { }
 
-  $.map = function(elements, callback){
+  // 同时兼容对象和数组，  flatten 数组扁平化
+  $.map = function (elements, callback) {
     var value, values = [], i, key
     if (likeArray(elements))
       for (i = 0; i < elements.length; i++) {
@@ -622,7 +629,8 @@ var Zepto = (function() {
     return flatten(values)
   }
 
-  $.each = function(elements, callback){
+  // 同时兼容
+  $.each = function (elements, callback) {
     var i, key
     if (likeArray(elements)) {
       for (i = 0; i < elements.length; i++)
@@ -635,10 +643,12 @@ var Zepto = (function() {
     return elements
   }
 
-  $.grep = function(elements, callback){
+  // 调用数组的（es5）的filter ，callback 中所有返回 true的元素放进一个新的数组中返回
+  $.grep = function (elements, callback) {
     return filter.call(elements, callback)
   }
 
+  // 挂在静态方法
   if (window.JSON) $.parseJSON = JSON.parse
 
   // Populate the class2type map
@@ -649,8 +659,10 @@ var Zepto = (function() {
   }
   
   */
-  $.each("Boolean Number String Function Array Date RegExp Object Error".split(" "), function(i, name) {
-    class2type[ "[object " + name + "]" ] = name.toLowerCase()
+
+
+  $.each("Boolean Number String Function Array Date RegExp Object Error".split(" "), function (i, name) {
+    class2type["[object " + name + "]"] = name.toLowerCase()
   })
 
   // Define methods that will be available on all
@@ -667,8 +679,9 @@ var Zepto = (function() {
     sort: emptyArray.sort,
     splice: emptyArray.splice,
     indexOf: emptyArray.indexOf,
-    concat: function(){
-      debugger;
+
+    // 
+    concat: function () {
       var i, value, args = []
       for (i = 0; i < arguments.length; i++) {
         value = arguments[i]
@@ -679,122 +692,153 @@ var Zepto = (function() {
 
     // `map` and `slice` in the jQuery API work differently
     // from their array counterparts
-    map: function(fn){
-      return $($.map(this, function(el, i){ return fn.call(el, i, el) }))
+    // 为什么最后要包装一次，为了Array to zepto对象
+    map: function (fn) {
+      return $($.map(this, function (el, i) { return fn.call(el, i, el) }))
     },
-    slice: function(){
+    slice: function () {
       return $(slice.apply(this, arguments))
     },
 
-    ready: function(callback){
+    ready: function (callback) {
       // don't use "interactive" on IE <= 10 (it can fired premature)
+      /* 
+      document readyState 属性描述了文档的加载状态
+
+      loading document仍在加载
+      interactive 互动 dom文档已经被解析，但是图像，样式或者框架之类的子资源仍在加载
+      complete 完成 文档和子资源都完成加载 状态标识load事件即将被触发
+      这个属性的变化会触发doucment readystateChange事件
+      */
       if (document.readyState === "complete" ||
-          (document.readyState !== "loading" && !document.documentElement.doScroll))
-        setTimeout(function(){ callback($) }, 0)
+        (document.readyState !== "loading" && !document.documentElement.doScroll))
+        setTimeout(function () { callback($) }, 0)
       else {
-        var handler = function() {
+        var handler = function () {
           document.removeEventListener("DOMContentLoaded", handler, false)
           window.removeEventListener("load", handler, false)
           callback($)
         }
+        // DOMContentLoaded 当初的html文档被完全加载和解析之后，而不需要等待样式表、图像、框架子资源
         document.addEventListener("DOMContentLoaded", handler, false)
+        // 当一个资源及其依赖资源已完成加载时，将触发load事件。
         window.addEventListener("load", handler, false)
       }
       return this
     },
     //如果有idx那么返回相应的index元素，如果没有返回整个数组
-    get: function(idx){
+    get: function (idx) {
       return idx === undefined ? slice.call(this) : this[idx >= 0 ? idx : idx + this.length]
     },
-    toArray: function(){ return this.get() },
-    size: function(){
+    // 返回全部的数组拷贝
+    toArray: function () { return this.get() },
+    // 数组长度
+    size: function () {
       return this.length
     },
-    remove: function(){
-      return this.each(function(){
+    // 去除方法 this.parentNode.removeChild(this)
+    remove: function () {
+      return this.each(function () {
         if (this.parentNode != null)
           this.parentNode.removeChild(this)
       })
     },
-    each: function(callback){
-      emptyArray.every.call(this, function(el, idx){
+    // each 使用every方法，有什么特殊意义吗
+    each: function (callback) {
+      emptyArray.every.call(this, function (el, idx) {
         return callback.call(el, idx, el) !== false
       })
       return this
     },
-    filter: function(selector){
+    filter: function (selector) {
       if (isFunction(selector)) return this.not(this.not(selector))
-      return $(filter.call(this, function(element){
+      return $(filter.call(this, function (element) {
         return zepto.matches(element, selector)
       }))
     },
-    add: function(selector,context){
-      return $(uniq(this.concat($(selector,context))))
+    // 添加 去重的添加
+    add: function (selector, context) {
+      return $(uniq(this.concat($(selector, context))))
     },
-    is: function(selector){
-      return typeof selector == 'string' ? this.length > 0 && zepto.matches(this[0], selector) : 
-          selector && this.selector == selector.selector
+    is: function (selector) {
+      return typeof selector == 'string' ? this.length > 0 && zepto.matches(this[0], selector) :
+        selector && this.selector == selector.selector
     },
-    not: function(selector){
-      var nodes=[]
+    not: function (selector) {
+      var nodes = []
       if (isFunction(selector) && selector.call !== undefined)
-        this.each(function(idx){
-          if (!selector.call(this,idx)) nodes.push(this)
+        this.each(function (idx) {
+          if (!selector.call(this, idx)) nodes.push(this)
         })
       else {
         var excludes = typeof selector == 'string' ? this.filter(selector) :
           (likeArray(selector) && isFunction(selector.item)) ? slice.call(selector) : $(selector)
-        this.forEach(function(el){
+        this.forEach(function (el) {
           if (excludes.indexOf(el) < 0) nodes.push(el)
         })
       }
       return $(nodes)
     },
-    has: function(selector){
-      return this.filter(function(){
+    // 可以传入selector 和 node this.filter 回到的zepto对象
+    has: function (selector) {
+      return this.filter(function () {
         return isObject(selector) ?
           $.contains(this, selector) :
           $(this).find(selector).size()
       })
     },
-    eq: function(idx){
+    // 返回第几个
+    eq: function (idx) {
       return idx === -1 ? this.slice(idx) : this.slice(idx, + idx + 1)
     },
-    first: function(){
+    // 返回第一个
+    first: function () {
       var el = this[0]
       return el && !isObject(el) ? el : $(el)
     },
-    last: function(){
+    // 返回最后一个
+    last: function () {
       var el = this[this.length - 1]
       return el && !isObject(el) ? el : $(el)
     },
-    find: function(selector){
+    // 不管从哪个角度看 感觉 find都是一个效率很低的方法
+    // 几种条件中都有查找dom的方法
+    find: function (selector) {
       var result, $this = this
       if (!selector) result = $()
+      // 如果是一个node对象，包装成zepto 然后去过滤
       else if (typeof selector == 'object')
-        result = $(selector).filter(function(){
+        result = $(selector).filter(function () {
           var node = this
-          return emptyArray.some.call($this, function(parent){
+          return emptyArray.some.call($this, function (parent) {
+            // 查询dom 的动作
             return $.contains(parent, node)
           })
         })
+      // 可能是性能最好的一个
       else if (this.length == 1) result = $(zepto.qsa(this[0], selector))
-      else result = this.map(function(){ return zepto.qsa(this, selector) })
+      // 调用多次 query api
+      else result = this.map(function () { return zepto.qsa(this, selector) })
       return result
     },
-    closest: function(selector, context){
+
+    // 返回最先匹配的父级元素
+    closest: function (selector, context) {
       var nodes = [], collection = typeof selector == 'object' && $(selector)
-      this.each(function(_, node){
+      this.each(function (_, node) {
+        // 如果是dom 元素 或者如果是一个selector string
         while (node && !(collection ? collection.indexOf(node) >= 0 : zepto.matches(node, selector)))
           node = node !== context && !isDocument(node) && node.parentNode
         if (node && nodes.indexOf(node) < 0) nodes.push(node)
       })
       return $(nodes)
     },
-    parents: function(selector){
+
+    // 获取集合中每个元素 所有的 父级元素 直到 documentElement
+    parents: function (selector) {
       var ancestors = [], nodes = this
       while (nodes.length > 0)
-        nodes = $.map(nodes, function(node){
+        nodes = $.map(nodes, function (node) {
           if ((node = node.parentNode) && !isDocument(node) && ancestors.indexOf(node) < 0) {
             ancestors.push(node)
             return node
@@ -802,51 +846,63 @@ var Zepto = (function() {
         })
       return filtered(ancestors, selector)
     },
-    parent: function(selector){
+    // 集合中每个元素的直接父元素。如果css选择器参数给出。过滤出符合条件的元素
+    parent: function (selector) {
       return filtered(uniq(this.pluck('parentNode')), selector)
     },
-    children: function(selector){
-      return filtered(this.map(function(){ return children(this) }), selector)
+    // 返回直接子元素
+    children: function (selector) {
+      return filtered(this.map(function () { return children(this) }), selector)
     },
-    contents: function() {
-      return this.map(function() { return this.contentDocument || slice.call(this.childNodes) })
+
+    // 返回直接子node
+    contents: function () {
+      return this.map(function () { return this.contentDocument || slice.call(this.childNodes) })
     },
-    siblings: function(selector){
-      return filtered(this.map(function(i, el){
-        return filter.call(children(el.parentNode), function(child){ return child!==el })
+
+    // 获取当前父元素的所有子元素，然后过滤掉自己
+    siblings: function (selector) {
+      return filtered(this.map(function (i, el) {
+        return filter.call(children(el.parentNode), function (child) { return child !== el })
       }), selector)
     },
-    empty: function(){
-      return this.each(function(){ this.innerHTML = '' })
+    // 清空的操作，有没有必要考虑下事件的绑定
+    empty: function () {
+      return this.each(function () { this.innerHTML = '' })
     },
     // `pluck` is borrowed from Prototype.js
-    pluck: function(property){
-      return $.map(this, function(el){ return el[property] })
+    pluck: function (property) {
+      return $.map(this, function (el) { return el[property] })
     },
-    show: function(){
-      return this.each(function(){
+    /* 
+      如果display 设置的的是none,符合条件 那么首先置为display = ''
+      动态生成一个相应的元素 来拿到默认的display
+    */
+    show: function () {
+      return this.each(function () {
         this.style.display == "none" && (this.style.display = '')
         if (getComputedStyle(this, '').getPropertyValue("display") == "none")
           this.style.display = defaultDisplay(this.nodeName)
       })
     },
-    replaceWith: function(newContent){
+    // 前强势插入 后面删除
+    replaceWith: function (newContent) {
       return this.before(newContent).remove()
     },
-    wrap: function(structure){
+    wrap: function (structure) {
       var func = isFunction(structure)
       if (this[0] && !func)
-        var dom   = $(structure).get(0),
-            clone = dom.parentNode || this.length > 1
+        var dom = $(structure).get(0),
+          clone = dom.parentNode || this.length > 1
 
-      return this.each(function(index){
+      return this.each(function (index) {
         $(this).wrapAll(
           func ? structure.call(this, index) :
             clone ? dom.cloneNode(true) : dom
         )
       })
     },
-    wrapAll: function(structure){
+    wrapAll: function (structure) {
       if (this[0]) {
         $(this[0]).before(structure = $(structure))
         var children
@@ -856,79 +912,94 @@ var Zepto = (function() {
       }
       return this
     },
-    wrapInner: function(structure){
+    wrapInner: function (structure) {
       var func = isFunction(structure)
-      return this.each(function(index){
+      return this.each(function (index) {
         var self = $(this), contents = self.contents(),
-            dom  = func ? structure.call(this, index) : structure
+          dom = func ? structure.call(this, index) : structure
         contents.length ? contents.wrapAll(dom) : self.append(dom)
       })
     },
-    unwrap: function(){
-      this.parent().each(function(){
+    unwrap: function () {
+      this.parent().each(function () {
         $(this).replaceWith($(this).children())
       })
       return this
     },
-    clone: function(){
-      return this.map(function(){ return this.cloneNode(true) })
+    // 调用原生的方法进行深度克隆，然后包装成zepto对象 ，返回
+    clone: function () {
+      return this.map(function () { return this.cloneNode(true) })
     },
-    hide: function(){
+    hide: function () {
       return this.css("display", "none")
     },
-    toggle: function(setting){
-      return this.each(function(){
+    toggle: function (setting) {
+      return this.each(function () {
+        // el 书写容易引起歧义 使用 $el 会不会更好 
         var el = $(this)
-        ;(setting === undefined ? el.css("display") == "none" : setting) ? el.show() : el.hide()
+          ; (setting === undefined ? el.css("display") == "none" : setting) ? el.show() : el.hide()
       })
     },
-    prev: function(selector){ return $(this.pluck('previousElementSibling')).filter(selector || '*') },
-    next: function(selector){ return $(this.pluck('nextElementSibling')).filter(selector || '*') },
-    html: function(html){
+    // 只返回元素 而不是node
+    prev: function (selector) { return $(this.pluck('previousElementSibling')).filter(selector || '*') },
+    next: function (selector) { return $(this.pluck('nextElementSibling')).filter(selector || '*') },
+    // 插入html 所有的集合都会生效，如果是获取html，只会返回第一个元素的innerHTML
+    html: function (html) {
       return 0 in arguments ?
-        this.each(function(idx){
+        this.each(function (idx) {
           var originHtml = this.innerHTML
-          $(this).empty().append( funcArg(this, html, idx, originHtml) )
+          $(this).empty().append(funcArg(this, html, idx, originHtml))
         }) :
         (0 in this ? this[0].innerHTML : null)
     },
-    text: function(text){
+    // 使用node 的textContent 而不是使用 innerText方法，textContent 会获取所有元素的内容，且不局限于css的控制
+    text: function (text) {
       return 0 in arguments ?
-        this.each(function(idx){
+        this.each(function (idx) {
           var newText = funcArg(this, text, idx, this.textContent)
-          this.textContent = newText == null ? '' : ''+newText
+          this.textContent = newText == null ? '' : '' + newText
         }) :
         (0 in this ? this.pluck('textContent').join("") : null)
     },
-    attr: function(name, value){
+
+    // 只返回一个元素的属性
+    // 循环设置多个属性
+    // 指针对于nodeType == 1的情况
+    attr: function (name, value) {
       var result
       return (typeof name == 'string' && !(1 in arguments)) ?
         (0 in this && this[0].nodeType == 1 && (result = this[0].getAttribute(name)) != null ? result : undefined) :
-        this.each(function(idx){
+        this.each(function (idx) {
           if (this.nodeType !== 1) return
           if (isObject(name)) for (key in name) setAttribute(this, key, name[key])
           else setAttribute(this, name, funcArg(this, value, idx, this.getAttribute(name)))
         })
     },
-    removeAttr: function(name){
-      return this.each(function(){ this.nodeType === 1 && name.split(' ').forEach(function(attribute){
+    // 可以删除多个属性 空格隔开
+    removeAttr: function (name) {
+      return this.each(function () {
+      this.nodeType === 1 && name.split(' ').forEach(function (attribute) {
         setAttribute(this, attribute)
-      }, this)})
+      }, this)
+      })
     },
-    prop: function(name, value){
+    // 元素的原有属性，通过.可以直接访问到的
+    prop: function (name, value) {
       name = propMap[name] || name
       return (typeof name == 'string' && !(1 in arguments)) ?
         (this[0] && this[0][name]) :
-        this.each(function(idx){
+        this.each(function (idx) {
           if (isObject(name)) for (key in name) this[propMap[key] || key] = name[key]
           else this[name] = funcArg(this, value, idx, this[name])
         })
     },
-    removeProp: function(name){
+    // 删除
+    removeProp: function (name) {
       name = propMap[name] || name
-      return this.each(function(){ delete this[name] })
+      return this.each(function () { delete this[name] })
     },
-    data: function(name, value){
+    // 针对于data-的属性 其实还是调用的 attr，这不是扯淡吗 返回结果会被格式化
+    data: function (name, value) {
       var attrName = 'data-' + name.replace(capitalRE, '-$1').toLowerCase()
 
       var data = (1 in arguments) ?
@@ -937,35 +1008,42 @@ var Zepto = (function() {
 
       return data !== null ? deserializeValue(data) : undefined
     },
-    val: function(value){
+    // value
+    val: function (value) {
       if (0 in arguments) {
         if (value == null) value = ""
-        return this.each(function(idx){
+        return this.each(function (idx) {
           this.value = funcArg(this, value, idx, this.value)
         })
       } else {
+        // this[0].multiple 这是啥意思呢
         return this[0] && (this[0].multiple ?
-           $(this[0]).find('option').filter(function(){ return this.selected }).pluck('value') :
-           this[0].value)
+          $(this[0]).find('option').filter(function () { return this.selected }).pluck('value') :
+          this[0].value)
       }
     },
-    offset: function(coordinates){
-      if (coordinates) return this.each(function(index){
+    // 
+    offset: function (coordinates) {
+      // 设置的方法
+      if (coordinates) return this.each(function (index) {
         var $this = $(this),
-            coords = funcArg(this, coordinates, index, $this.offset()),
-            parentOffset = $this.offsetParent().offset(),
-            props = {
-              top:  coords.top  - parentOffset.top,
-              left: coords.left - parentOffset.left
-            }
+          coords = funcArg(this, coordinates, index, $this.offset()),
+          parentOffset = $this.offsetParent().offset(),
+          props = {
+            top: coords.top - parentOffset.top,
+            left: coords.left - parentOffset.left
+          }
 
         if ($this.css('position') == 'static') props['position'] = 'relative'
         $this.css(props)
       })
+
+
       if (!this.length) return null
       if (document.documentElement !== this[0] && !$.contains(document.documentElement, this[0]))
-        return {top: 0, left: 0}
+        return { top: 0, left: 0 }
       var obj = this[0].getBoundingClientRect()
+      // 当前元素所在的高度位置为 getBoundingClientRect + window.pageYOffset
       return {
         left: obj.left + window.pageXOffset,
         top: obj.top + window.pageYOffset,
@@ -973,7 +1051,9 @@ var Zepto = (function() {
         height: Math.round(obj.height)
       }
     },
-    css: function(property, value){
+    //
+    css: function (property, value) {
+      // 获取当前的样式，关键方法为 element.style[xxx] || getComputedStyle
       if (arguments.length < 2) {
         var element = this[0]
         if (typeof property == 'string') {
@@ -983,115 +1063,126 @@ var Zepto = (function() {
           if (!element) return
           var props = {}
           var computedStyle = getComputedStyle(element, '')
-          $.each(property, function(_, prop){
+          $.each(property, function (_, prop) {
             props[prop] = (element.style[camelize(prop)] || computedStyle.getPropertyValue(prop))
           })
           return props
         }
       }
-
+      //设置当前的样式
       var css = ''
       if (type(property) == 'string') {
         if (!value && value !== 0)
-          this.each(function(){ this.style.removeProperty(dasherize(property)) })
+          this.each(function () { this.style.removeProperty(dasherize(property)) })
         else
           css = dasherize(property) + ":" + maybeAddPx(property, value)
       } else {
         for (key in property)
           if (!property[key] && property[key] !== 0)
-            this.each(function(){ this.style.removeProperty(dasherize(key)) })
+            this.each(function () { this.style.removeProperty(dasherize(key)) })
           else
             css += dasherize(key) + ':' + maybeAddPx(key, property[key]) + ';'
       }
 
-      return this.each(function(){ this.style.cssText += ';' + css })
+      return this.each(function () { this.style.cssText += ';' + css })
     },
-    index: function(element){
+    // this.parent().children().indexOf(this[0]) 直接写 0 行不行
+    index: function (element) {
       return element ? this.indexOf($(element)[0]) : this.parent().children().indexOf(this[0])
     },
-    hasClass: function(name){
+    // some(callback，thisArg)
+    // class的操作重点是 className 这个函数
+    hasClass: function (name) {
       if (!name) return false
-      return emptyArray.some.call(this, function(el){
+      return emptyArray.some.call(this, function (el) {
         return this.test(className(el))
       }, classRE(name))
     },
-    addClass: function(name){
+    addClass: function (name) {
       if (!name) return this
-      return this.each(function(idx){
+      return this.each(function (idx) {
         if (!('className' in this)) return
         classList = []
         var cls = className(this), newName = funcArg(this, name, idx, cls)
-        newName.split(/\s+/g).forEach(function(klass){
+        newName.split(/\s+/g).forEach(function (klass) {
           if (!$(this).hasClass(klass)) classList.push(klass)
         }, this)
         classList.length && className(this, cls + (cls ? " " : "") + classList.join(" "))
       })
     },
-    removeClass: function(name){
-      return this.each(function(idx){
+    removeClass: function (name) {
+      return this.each(function (idx) {
         if (!('className' in this)) return
         if (name === undefined) return className(this, '')
         classList = className(this)
-        funcArg(this, name, idx, classList).split(/\s+/g).forEach(function(klass){
+        funcArg(this, name, idx, classList).split(/\s+/g).forEach(function (klass) {
           classList = classList.replace(classRE(klass), " ")
         })
         className(this, classList.trim())
       })
     },
-    toggleClass: function(name, when){
+    toggleClass: function (name, when) {
       if (!name) return this
-      return this.each(function(idx){
+      return this.each(function (idx) {
         var $this = $(this), names = funcArg(this, name, idx, className(this))
-        names.split(/\s+/g).forEach(function(klass){
+        names.split(/\s+/g).forEach(function (klass) {
           (when === undefined ? !$this.hasClass(klass) : when) ?
             $this.addClass(klass) : $this.removeClass(klass)
         })
       })
     },
-    scrollTop: function(value){
+    /* 
+      对于window使用的是pageYOffset 这个方法
+      对于非window使用的 scrollTop 这个方法
+    */
+    scrollTop: function (value) {
       if (!this.length) return
       var hasScrollTop = 'scrollTop' in this[0]
       if (value === undefined) return hasScrollTop ? this[0].scrollTop : this[0].pageYOffset
       return this.each(hasScrollTop ?
-        function(){ this.scrollTop = value } :
-        function(){ this.scrollTo(this.scrollX, value) })
+        function () { this.scrollTop = value } :
+        function () { this.scrollTo(this.scrollX, value) })
     },
-    scrollLeft: function(value){
+    scrollLeft: function (value) {
       if (!this.length) return
       var hasScrollLeft = 'scrollLeft' in this[0]
       if (value === undefined) return hasScrollLeft ? this[0].scrollLeft : this[0].pageXOffset
       return this.each(hasScrollLeft ?
-        function(){ this.scrollLeft = value } :
-        function(){ this.scrollTo(value, this.scrollY) })
+        function () { this.scrollLeft = value } :
+        function () { this.scrollTo(value, this.scrollY) })
     },
-    position: function() {
+
+
+    position: function () {
       if (!this.length) return
 
       var elem = this[0],
         // Get *real* offsetParent
         offsetParent = this.offsetParent(),
         // Get correct offsets
-        offset       = this.offset(),
+        offset = this.offset(),
         parentOffset = rootNodeRE.test(offsetParent[0].nodeName) ? { top: 0, left: 0 } : offsetParent.offset()
 
       // Subtract element margins
       // note: when an element has margin: auto the offsetLeft and marginLeft
       // are the same in Safari causing offset.left to incorrectly be 0
-      offset.top  -= parseFloat( $(elem).css('margin-top') ) || 0
-      offset.left -= parseFloat( $(elem).css('margin-left') ) || 0
+      offset.top -= parseFloat($(elem).css('margin-top')) || 0
+      offset.left -= parseFloat($(elem).css('margin-left')) || 0
 
       // Add offsetParent borders
-      parentOffset.top  += parseFloat( $(offsetParent[0]).css('border-top-width') ) || 0
-      parentOffset.left += parseFloat( $(offsetParent[0]).css('border-left-width') ) || 0
+      parentOffset.top += parseFloat($(offsetParent[0]).css('border-top-width')) || 0
+      parentOffset.left += parseFloat($(offsetParent[0]).css('border-left-width')) || 0
 
       // Subtract the two offsets
       return {
-        top:  offset.top  - parentOffset.top,
+        top: offset.top - parentOffset.top,
         left: offset.left - parentOffset.left
       }
     },
-    offsetParent: function() {
-      return this.map(function(){
+
+    //
+    offsetParent: function () {
+      return this.map(function () {
         var parent = this.offsetParent || document.body
         while (parent && !rootNodeRE.test(parent.nodeName) && $(parent).css("position") == "static")
           parent = parent.offsetParent
@@ -1103,22 +1194,27 @@ var Zepto = (function() {
   // for now
   $.fn.detach = $.fn.remove
 
-  // Generate the `width` and `height` functions
-  ;['width', 'height'].forEach(function(dimension){
-    var dimensionProperty =
-      dimension.replace(/./, function(m){ return m[0].toUpperCase() })
-
-    $.fn[dimension] = function(value){
-      var offset, el = this[0]
-      if (value === undefined) return isWindow(el) ? el['inner' + dimensionProperty] :
-        isDocument(el) ? el.documentElement['scroll' + dimensionProperty] :
-        (offset = this.offset()) && offset[dimension]
-      else return this.each(function(idx){
-        el = $(this)
-        el.css(dimension, funcArg(this, value, idx, el[dimension]()))
-      })
-    }
-  })
+    // Generate the `width` and `height` functions
+    ;['width', 'height'].forEach(function (dimension) {
+      var dimensionProperty =
+        dimension.replace(/./, function (m) { return m[0].toUpperCase() })
+      /* 
+         以高度为例子
+         window height   window.innerHeight
+         document height document.documentElement.scrollHeight
+          其它  getBoundingClientRect() height
+      */
+      $.fn[dimension] = function (value) {
+        var offset, el = this[0]
+        if (value === undefined) return isWindow(el) ? el['inner' + dimensionProperty] :
+          isDocument(el) ? el.documentElement['scroll' + dimensionProperty] :
+            (offset = this.offset()) && offset[dimension]
+        else return this.each(function (idx) {
+          el = $(this)
+          el.css(dimension, funcArg(this, value, idx, el[dimension]()))
+        })
+      }
+    })
 
   function traverseNode(node, fun) {
     fun(node)
@@ -1128,47 +1224,47 @@ var Zepto = (function() {
 
   // Generate the `after`, `prepend`, `before`, `append`,
   // `insertAfter`, `insertBefore`, `appendTo`, and `prependTo` methods.
-  adjacencyOperators.forEach(function(operator, operatorIndex) {
+  adjacencyOperators.forEach(function (operator, operatorIndex) {
     var inside = operatorIndex % 2 //=> prepend, append
 
-    $.fn[operator] = function(){
+    $.fn[operator] = function () {
       // arguments can be nodes, arrays of nodes, Zepto objects and HTML strings
-      var argType, nodes = $.map(arguments, function(arg) {
-            var arr = []
-            argType = type(arg)
-            if (argType == "array") {
-              arg.forEach(function(el) {
-                if (el.nodeType !== undefined) return arr.push(el)
-                else if ($.zepto.isZ(el)) return arr = arr.concat(el.get())
-                arr = arr.concat(zepto.fragment(el))
-              })
-              return arr
-            }
-            return argType == "object" || arg == null ?
-              arg : zepto.fragment(arg)
-          }),
-          parent, copyByClone = this.length > 1
+      var argType, nodes = $.map(arguments, function (arg) {
+        var arr = []
+        argType = type(arg)
+        if (argType == "array") {
+          arg.forEach(function (el) {
+            if (el.nodeType !== undefined) return arr.push(el)
+            else if ($.zepto.isZ(el)) return arr = arr.concat(el.get())
+            arr = arr.concat(zepto.fragment(el))
+          })
+          return arr
+        }
+        return argType == "object" || arg == null ?
+          arg : zepto.fragment(arg)
+      }),
+        parent, copyByClone = this.length > 1
       if (nodes.length < 1) return this
 
-      return this.each(function(_, target){
+      return this.each(function (_, target) {
         parent = inside ? target : target.parentNode
 
         // convert all methods to a "before" operation
         target = operatorIndex == 0 ? target.nextSibling :
-                 operatorIndex == 1 ? target.firstChild :
-                 operatorIndex == 2 ? target :
-                 null
+          operatorIndex == 1 ? target.firstChild :
+            operatorIndex == 2 ? target :
+              null
 
         var parentInDocument = $.contains(document.documentElement, parent)
 
-        nodes.forEach(function(node){
+        nodes.forEach(function (node) {
           if (copyByClone) node = node.cloneNode(true)
           else if (!parent) return $(node).remove()
 
           parent.insertBefore(node, target)
-          if (parentInDocument) traverseNode(node, function(el){
+          if (parentInDocument) traverseNode(node, function (el) {
             if (el.nodeName != null && el.nodeName.toUpperCase() === 'SCRIPT' &&
-               (!el.type || el.type === 'text/javascript') && !el.src){
+              (!el.type || el.type === 'text/javascript') && !el.src) {
               var target = el.ownerDocument ? el.ownerDocument.defaultView : window
               target['eval'].call(target, el.innerHTML)
             }
@@ -1181,7 +1277,7 @@ var Zepto = (function() {
     // prepend  => prependTo
     // before   => insertBefore
     // append   => appendTo
-    $.fn[inside ? operator+'To' : 'insert'+(operatorIndex ? 'Before' : 'After')] = function(html){
+    $.fn[inside ? operator + 'To' : 'insert' + (operatorIndex ? 'Before' : 'After')] = function (html) {
       $(html)[operator](this)
       return this
     }
